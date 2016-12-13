@@ -1,6 +1,21 @@
 exports.handler = function( event, context ) {
+    
+    var current = ''
+    var teams = [['ANA', 'Ducks'], ['ARI', 'Coyotes'], ['ATL', 'Thrashers'], ['BOS', 'Bruins'], ['BUF', 'Sabres'], ['CAR', 'Hurricanes'], ['CGY', 'Flames'], ['CHI', 'Blackhawks'], ['CBJ', 'Jackets'], ['COL', 'Avalanche'], ['DAL', 'Stars'], ['DET', 'Wings'], ['EDM', 'Oilers'], ['FLA', 'Panthers'], ['LAK', 'Kings'], ['MIN', 'Wild'], ['MTL', 'Canadiens'], ['NSH', 'Predators'], ['NJ', 'Devils'], ['NYI', 'Islanders'], ['NYR', 'Rangers'], ['OTT', 'Senators'], ['PHI', 'Flyers'], ['PHX', 'Coyotes'], ['PIT', 'Penguins'], ['SJS', 'Sharks'], ['STL', 'Blues'], ['TBL', 'Lightning'], ['TOR', 'Leafs'], ['VAN', 'Canucks'], ['WSH', 'Capitals'], ['WPG', 'Jets']]
 
-    var first_url = "http://live.nhl.com/GameData/SeasonSchedule-20162017.json";
+    if ( event.request.intent ) {
+        current = event.request.intent.slots.TeamName.value.toLowerCase();
+    }
+    
+    var invoc = current
+    var team_abrv = 'LAK'
+    teams.forEach(function(team_full) {
+                            if(invoc.indexOf(team_full[1].toLowerCase()) !== -1){
+                                team_abrv = team_full[0]
+                            }
+                        })
+                        
+        var first_url = "http://live.nhl.com/GameData/SeasonSchedule-20162017.json";
     var http = require( 'http' );
     var game_id = null
     var last_game = null
@@ -22,7 +37,7 @@ exports.handler = function( event, context ) {
                     var format_date = year + "/" + month + "/" + day + " " + hour + ":" + minute + ":" + "00"
                     var format_date_final = new Date(format_date)
                     var current_date_final = new Date(Date())
-                    if (format_date_final < current_date_final && (home == 'LAK' || away == 'LAK')){
+                    if (format_date_final < current_date_final && (home == team_abrv || away == team_abrv)){
                         past_games.push(element)
                     }
                 });
@@ -39,7 +54,7 @@ exports.handler = function( event, context ) {
                             json2['data']['game']['plays']['play'].forEach(function(element2) {
                                 game_plays.push(element2['desc'])
                             })
-                        var text = game_plays.slice(Math.max(game_plays.length - 5, 1))
+                        var text = game_plays.slice(Math.max(game_plays.length - 5, 1)).join(", ")
                         output( text, context );
                     } );
                 } );
